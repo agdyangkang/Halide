@@ -70,6 +70,18 @@ bool contains_impure_call(const Expr &expr) {
     return is_not_pure.result;
 }
 
+class CurrentRealizationInScope : public IRVisitor {
+    using IRVisitor::visit;
+
+    void visit(const Realize *op) {
+        funcs.insert(op->name);
+    }
+
+public:
+    set<string> funcs;
+    CurrentRealizationInScope() {}
+};
+
 // Build a loop nest about a provide node using a schedule
 Stmt build_provide_loop_nest_helper(string func_name,
                                     string prefix,
@@ -85,6 +97,7 @@ Stmt build_provide_loop_nest_helper(string func_name,
     // then wrapping it in for loops.
 
     // Make the (multi-dimensional multi-valued) store node.
+    // TODO(psuriana): How should we check if the substitution is indeed okay?
     Stmt stmt = Provide::make(func_name, values, site);
 
     // A map of the dimensions for which we know the extent is a
